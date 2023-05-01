@@ -84,8 +84,8 @@ df_T1vT2 <- cytof_dat %>% filter(timePoint %in% c('Week 8','Post Run-in'))
 
 ## P-values
 
-Wilcoxon test for each time point comparing responders vs non-responders. And paired Wilcoxon p-values for baseline vs post run-in and post run-in vs week 8.
-Then take differences between all time points and compare responders vs non-responders to see if there is significant difference in changes after treatment
+Pairwise Wilcoxon test was used for each time point comparing responders vs non-responders. And paired Wilcoxon test was used for baseline vs post run-in and post run-in vs week 8.
+We took the differences between all time points and then compare those differences between  responders vs non-responders to see if there is significant difference in changes after treatment
 
 ```{r  fig.width = 10}
 
