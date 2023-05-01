@@ -80,8 +80,8 @@ get_freq_table <- function(dta_pts, v_name) {
 
         ci <- NULL
         for (i in seq_len(nrow(rst))) {
-            cur_ci <- round(binom.test(rst[i, "N"], rst[i, "Total"])$conf.int, 5)
-            ci     <- round(rbind(ci, 100 * cur_ci),5)
+            cur_ci <- round(binom.test(rst[i, "N"], rst[i, "Total"])$conf.int, 2)
+            ci     <- round(rbind(ci, 100 * cur_ci),2)
         }
 
         colnames(ci) <- c("CI_Lb", "CI_Ub")
@@ -279,18 +279,21 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
                                ylab = "Survival Probability", conf.int = FALSE,
                                title = title,
                                palette =c(subtypeCol, "Overall" = 'black'),
-                               ylim = c(0, 1), xlim = c(0, 50),
+                               ylim = c(0, 1), xlim = c(0, 70),
                                legend.title = "",
                                tables.y.text = FALSE)
 
 #    rst_plot$table <- rst_plot$table
 
     rst_plot$plot <- rst_plot$plot +
-        ggplot2::annotate("text", x = 40, y = 0.8,
-                          size = 5, label = median_txt)+ # add text with median survival
+        ggplot2::annotate("text", x = 50, y = 0.8,
+                          size = 5, label = median_txt) # add text with median survival
         # add text with p-value
-      ggplot2::annotate(geom="text", x=15, y=0,
-                          size = 5,  label=paste("The p-value for HR+ vs TNBC is", p_val))
+#      ggplot2::annotate(geom="text", x=15, y=0,
+#                          size = 5,  label=paste("The p-value for HR+ vs TNBC is", p_val))
+      
+      # print p-value
+      print(paste("The p-value for HR+ vs TNBC is", p_val))
 
     print(rst_plot)
 }
