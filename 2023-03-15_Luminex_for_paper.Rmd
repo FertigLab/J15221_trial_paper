@@ -290,7 +290,7 @@ for(i in cytokines[1:9])
       scale_x_discrete(labels=timeLab)+
       facet_wrap("facet") +
       scale_y_continuous(trans = "log10", labels = comma)+
-      stat_compare_means(comparisons = list(c("Baseline","Time 1"), c("Baseline","Time 2"), c("Time 1","Time 2"))))
+      stat_compare_means(comparisons = list(c(timeLab[1],timeLab[2]), c(timeLab[1],timeLab[3]), c(timeLab[2],timeLab[3]))))
 }
 
 
