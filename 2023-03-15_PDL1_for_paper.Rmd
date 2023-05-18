@@ -56,7 +56,7 @@ rootDir = "./"
 
 
 # Load data patient data
-dta_pts = read.csv(paste0(rootDir,"input_tables/table_patient_info.csv"), row.names = 1)
+dta_pts = read.csv(paste0(rootDir,"input_tables/table_patient_response_OS.csv"), row.names = 1)
 dta_pts$ID = rownames(dta_pts)
 
 #==========================

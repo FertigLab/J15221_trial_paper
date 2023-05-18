@@ -52,12 +52,20 @@ rootDir = "./"
 
 
 # Load data patient data
-dta_pts = read.csv(paste0(rootDir,"input_tables/table_patient_info.csv"), row.names = 1)
+dta_pts = read.csv(paste0(rootDir,"input_tables/table_patient_response_OS.csv"), row.names = 1)
 dta_pts$ID = rownames(dta_pts)
+
+# number of prior therapies by subtype
+print("summary of the number of prior therapies by subtype")
+print(aggregate(dta_pts$n_therapies, by = list(dta_pts$Subtype), FUN = summary))
+t.test(dta_pts$n_therapies ~ dta_pts$Subtype)
+
 
 # load data for a spider plot
 dta_tumor = read.csv(paste0(rootDir,"input_tables/table_tumor_size_change.csv"))
 colnames(dta_tumor) = c("ID",'Days', "Y" )
+
+datatable(dta_pts)
 
 ```
 
@@ -80,7 +88,7 @@ get_freq_table <- function(dta_pts, v_name) {
 
         ci <- NULL
         for (i in seq_len(nrow(rst))) {
-            cur_ci <- round(binom.test(rst[i, "N"], rst[i, "Total"])$conf.int, 2)
+            cur_ci <- binom.test(rst[i, "N"], rst[i, "Total"])$conf.int
             ci     <- round(rbind(ci, 100 * cur_ci),2)
         }
 
@@ -254,7 +262,7 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
     dat$event <- dat[[paste0(type_surv, "_Event")]]
     rst_surv_two_groups <- survfit(Surv(time, event) ~ Subtype, data = dat)
     #extract p-value
-    p_val = round(surv_pvalue(rst_surv_two_groups, data = dat)$pval,2)
+    p_val = round(surv_pvalue(rst_surv_two_groups, data = dat)$pval,3)
 #     print(p_val)
     
     # add All as a subtype
