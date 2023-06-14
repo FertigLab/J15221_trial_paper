@@ -132,17 +132,20 @@ tab = sapply(cytokines, function(i){
   # p-values
    res = compare_means(protein ~ RECIST, df, group.by = "timePoint")
    
- c(baseline_mean_resp = round(mean(resp, na.rm = T),2),
-   baseline_mean_non_resp = round(mean(nresp, na.rm = T),2),
-   baseline_p_value = res[1,'p.format'], 
+ c(baseline_mean_sd_resp = paste0(round(mean(resp, na.rm = T),2),"+/-",
+    round(sd(resp, na.rm = T),2)),
+   baseline_mean_sd_non_resp =  paste0(round(mean(nresp, na.rm = T),2),"+/-",
+    round(sd(nresp, na.rm = T),2)),
+   baseline_p_value = res[1,'p.format'] 
    
-   timepoint1_mean_resp = round(mean(resp1, na.rm = T),2),
-   timepoint1_mean_non_resp = round(mean(nresp1, na.rm = T),2),
-   timepoint1_p_value = res[2,'p.format'],
-   
-   timepoint2_mean_resp = round(mean(resp2, na.rm = T),2),
-   timepoint2_mean_non_resp = round(mean(nresp2, na.rm = T),2),
-   timepoint2_p_value = res[3,'p.format']) 
+   # timepoint1_mean_resp = round(mean(resp1, na.rm = T),2),
+   # timepoint1_mean_non_resp = round(mean(nresp1, na.rm = T),2),
+   # timepoint1_p_value = res[2,'p.format'],
+   # 
+   # timepoint2_mean_resp = round(mean(resp2, na.rm = T),2),
+   # timepoint2_mean_non_resp = round(mean(nresp2, na.rm = T),2),
+   # timepoint2_p_value = res[3,'p.format']
+   ) 
 
 })
 
@@ -151,6 +154,8 @@ colnames(tab) = gsub(".p.format","", colnames(tab))
 
 
 datatable(tab)
+
+write.csv(tab, file = "table_cytokines_baseline_by_response.csv", quote = F)
 
 
 res = c()

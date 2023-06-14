@@ -156,6 +156,8 @@ res = res[order(res[,'marker']),]
 
 datatable(res)
 
+write.csv(res,file = "table_cytof_wilcox_all_markers.csv", row.names = F)
+
 
 # make boxplots for markers/clusters that have p-value < 0.05 in d_T1_B_RvsNR
 sets = data.frame(res)
