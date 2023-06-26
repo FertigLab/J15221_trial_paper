@@ -204,6 +204,7 @@ res = round(res,3)
 
 datatable(res)
 
+write.csv(res, file = "table_cytokines_all_pvalues.csv", quote = F)
 
 ```
 

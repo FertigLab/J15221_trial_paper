@@ -87,7 +87,7 @@ df_T1vT2 <- cytof_dat %>% filter(timePoint %in% c('Week 8','Post Run-in'))
 Pairwise Wilcoxon test was used for each time point comparing responders vs non-responders. And paired Wilcoxon test was used for baseline vs post run-in and post run-in vs week 8.
 We took the differences between all time points and then compare those differences between  responders vs non-responders to see if there is significant difference in changes after treatment
 
-```{r  fig.width = 10}
+```{r  fig.width=6}
 
 # Calculate p-values from Wilcoxon test: paired for time points and not paired for response
 res = c()
@@ -168,14 +168,13 @@ for (i in 1:nrow(sets))
   k = sets[i,'cluster']
   j = sets[i,'marker']
 d = cytof_dat %>% filter(cluster == k)
-d = CreateAllFacet(d,"RECIST")
   df = cbind(protein = d[,j], 
-             d[,c("patientID", "timePoint", "RECIST","Subtype", "facet") ] )
+             d[,c("patientID", "timePoint", "RECIST","Subtype") ] )
 
     p = ggpaired(df , x="timePoint",y="protein", id = "patientID", 
                  line.size = 0.4, title = paste0(j,". ", k), 
                  line.color = "RECIST",palette =  recistCol, xlab="Time") +
-      facet_wrap("facet") +
+      facet_wrap("RECIST") +
       scale_x_discrete(labels=timeLab)
     
     print(p)
