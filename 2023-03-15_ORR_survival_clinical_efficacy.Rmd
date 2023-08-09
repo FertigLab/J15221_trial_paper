@@ -255,7 +255,7 @@ get_median_txt <- function(rst_survival, unit = "Months ", digits = 1) {
 
 ## plot survival curves
 plot_surv <- function(dat, type_surv = "PFS", title = "",
-                      add_overall = TRUE) {
+                      add_overall = TRUE, xlim = 70, xtext = 50) {
 
     # p-value for HR+ vs TNBC
     dat$time  <- dat[[paste0(type_surv, "_Time")]]
@@ -287,14 +287,14 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
                                ylab = "Survival Probability", conf.int = FALSE,
                                title = title,
                                palette =c(subtypeCol, "Overall" = 'black'),
-                               ylim = c(0, 1), xlim = c(0, 70),
+                               ylim = c(0, 1), xlim = c(0, xlim),
                                legend.title = "",
                                tables.y.text = FALSE)
 
 #    rst_plot$table <- rst_plot$table
 
     rst_plot$plot <- rst_plot$plot +
-        ggplot2::annotate("text", x = 50, y = 0.8,
+        ggplot2::annotate("text", x = xtext, y = 0.8,
                           size = 5, label = median_txt) # add text with median survival
         # add text with p-value
 #      ggplot2::annotate(geom="text", x=15, y=0,
@@ -325,7 +325,7 @@ pval_surv <- function(dat, type_surv = "PFS") {
 ## -------------------------------------------------------------
 
 
-pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival")
+pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", xlim = 50, xtext = 30)
 
 os <- plot_surv(dta_pts, "OS", "Overall Survival")
 
