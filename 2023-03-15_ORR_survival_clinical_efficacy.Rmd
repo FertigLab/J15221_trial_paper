@@ -228,7 +228,7 @@ print(sp1)
 
 # Survival analysis
 
-```{r fig.height= 7}
+```{r fig.height= 8}
 ##========================
 # modified functions from CG
 ##========================
@@ -253,9 +253,28 @@ get_median_txt <- function(rst_survival, unit = "Months ", digits = 1) {
     median_txt
 }
 
+# returns survival rate at specified time
+get_surv_txt <- function(rst_survival, time = 6, digits = 0) {
+    rst_sum <- summary(rst_survival, times = time)
+    grps    <- gsub("Subtype=|Group=", "",rst_sum$strata)
+    # survival by group
+    surv_rate     <- round(rst_sum$surv*100, digits)
+    # lower 95% CI
+    ci_l <- round(rst_sum$lower*100, digits)
+    # upper 95% CI
+    ci_u <- round(rst_sum$upper*100, digits)
+   
+    # gm<- apply(cbind(grps, surv_rate, ci_l, ci_u), 1,
+    #           function(x) paste0(x[1], " = ", x[2], ' (95% CI = [', x[3],', ', x[4],'])'))
+    gm<- apply(cbind(surv_rate, ci_l, ci_u), 1,
+              function(x) paste0( x[1], '% [', x[2],'%, ', x[3],'%]'))
+    gm
+}
+
 ## plot survival curves
 plot_surv <- function(dat, type_surv = "PFS", title = "",
-                      add_overall = TRUE, xlim = 70, xtext = 50) {
+                      add_overall = TRUE, xlim = 70, xtext = 50,
+                      x_6m = 9, x_12 = 18, add6m = FALSE) {
 
     # p-value for HR+ vs TNBC
     dat$time  <- dat[[paste0(type_surv, "_Time")]]
@@ -271,9 +290,13 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
     dat$event <- dat[[paste(type_surv, "_Event", sep = "")]]
 
     rst_survival <- survfit(Surv(time, event) ~ Subtype, data = dat)
-
+    # get text for median survival
     median_txt   <- get_median_txt(rst_survival)
-
+    # get text for 6 months
+    text_6m = get_surv_txt(rst_survival)
+    #get text for 12 months
+    text_12m = get_surv_txt(rst_survival, 12)
+    
     attr(rst_survival$strata, "names") <-
         sapply(attr(rst_survival$strata, "names"),
                function(x) gsub("Subtype=", "", x))
@@ -281,7 +304,7 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
     rst_plot     <- ggsurvplot(rst_survival,
                                data = dat,
                                risk.table = T,
-                               break.time.by = 5,
+                               break.time.by = 6,
                                legend = "top",
                                xlab = "Time (in months)",
                                ylab = "Survival Probability", conf.int = FALSE,
@@ -294,12 +317,27 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
 #    rst_plot$table <- rst_plot$table
 
     rst_plot$plot <- rst_plot$plot +
-        ggplot2::annotate("text", x = xtext, y = 0.8,
-                          size = 5, label = median_txt) # add text with median survival
-        # add text with p-value
-#      ggplot2::annotate(geom="text", x=15, y=0,
-#                          size = 5,  label=paste("The p-value for HR+ vs TNBC is", p_val))
-      
+      # add text with median survival
+        ggplot2::annotate("text", x = xtext, y = 0.65,
+                          size = 3.5, label = median_txt) + 
+      # add horizontal line at 50% survival rate
+      geom_hline(yintercept = .5, linetype="dashed", color = 'grey25')
+
+    if(add6m) rst_plot$plot <- rst_plot$plot +
+      # add vertical line at 6 months
+  geom_vline(xintercept = 6, linetype="dashed", color = 'grey25')+
+      # add survival values for groups at 6 months
+     annotate(geom="text", x=x_6m, y=1, label= text_6m[1],color = subtypeCol["HR+"])+
+      annotate(geom="text", x=x_6m, y=.96, label= text_6m[2],color = subtypeCol["TNBC"])+
+      annotate(geom="text", x=x_6m, y=.92, label= text_6m[3],color = 'black')+
+      # add vertical line at 12 months
+      geom_vline(xintercept = 12, linetype="dashed", color = 'grey25')+
+      # add survival values for groups at 6 months
+     annotate(geom="text", x=x_12, y=.86, label= text_12m[1],color = subtypeCol["HR+"])+
+      annotate(geom="text", x=x_12, y=.82, label= text_12m[2],color = subtypeCol["TNBC"])+
+      annotate(geom="text", x=x_12, y=.78, label= text_12m[3],color = 'black')
+
+          
       # print p-value
       print(paste("The p-value for HR+ vs TNBC is", p_val))
 
@@ -325,9 +363,9 @@ pval_surv <- function(dat, type_surv = "PFS") {
 ## -------------------------------------------------------------
 
 
-pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", xlim = 50, xtext = 30)
+pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", xlim = 50, xtext = 35)
 
-os <- plot_surv(dta_pts, "OS", "Overall Survival")
+os <- plot_surv(dta_pts, "OS", "Overall Survival", x_6m = 12, x_12 = 20)
 
 
 ```
