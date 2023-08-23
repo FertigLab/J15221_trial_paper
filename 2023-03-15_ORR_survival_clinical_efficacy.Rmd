@@ -321,13 +321,13 @@ plot_surv <- function(dat, type_surv = "PFS", title = "",
         ggplot2::annotate("text", x = xtext, y = 0.65,
                           size = 3.5, label = median_txt) + 
       # add horizontal line at 50% survival rate
-      geom_hline(yintercept = .5, linetype="dashed", color = 'grey25')
+      geom_hline(yintercept = .5, linetype="dashed", color = 'grey25',)
 
     if(add6m) rst_plot$plot <- rst_plot$plot +
       # add vertical line at 6 months
   geom_vline(xintercept = 6, linetype="dashed", color = 'grey25')+
       # add survival values for groups at 6 months
-     annotate(geom="text", x=x_6m, y=1, label= text_6m[1],color = subtypeCol["HR+"])+
+     annotate(geom="text", x=x_6m, y=1, label= text_6m[1],color = subtypeCol["HR+"], fill= 'white', )+
       annotate(geom="text", x=x_6m, y=.96, label= text_6m[2],color = subtypeCol["TNBC"])+
       annotate(geom="text", x=x_6m, y=.92, label= text_6m[3],color = 'black')+
       # add vertical line at 12 months
@@ -363,9 +363,9 @@ pval_surv <- function(dat, type_surv = "PFS") {
 ## -------------------------------------------------------------
 
 
-pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", xlim = 50, xtext = 35)
+pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35)
 
-os <- plot_surv(dta_pts, "OS", "Overall Survival", x_6m = 12, x_12 = 20)
+os <- plot_surv(dta_pts, "OS", "Overall Survival", x_6m = 15, x_12 = 20)
 
 
 ```
