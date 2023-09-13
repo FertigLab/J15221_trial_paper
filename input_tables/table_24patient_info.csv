@@ -1,0 +1,25 @@
+"ID","Subtype","ECOG","Age","race","biopsy_site","latest_treatment","latest_treatment_class","Dose_level","Cohort","PFS_Time","PFS_Event","OS_Time","OS_Event"
+"R-1","TNBC",1,52,"white",NA,"capecitabine","Antimetabolite","RP2D","Expansion",14.52,1,50.92,0
+"R-2","TNBC",0,47,"white","Lymph_Node","eribulin","Antimicrotubule","RP2D","Expansion",4.83,1,19.58,1
+"R-3","TNBC",1,71,"white",NA,NA,NA,"RP2D","Expansion",1.61,1,1.61,1
+"R-4","HR+",1,60,"white","Liver","gemcitabine","Antimetabolite","RP2D","Expansion",2.27,1,13.34,1
+"R-5","TNBC",0,44,"white","Chest_Wall","trx518","MonoclonalAntibody","4","Escalation",11.43,0,52.14,0
+"R-6","TNBC",1,48,"unknown","Chest_Wall","eribulin ","Antimicrotubule","RP2D","Expansion",2.83,1,2.83,1
+"R-7","TNBC",0,77,"white","Lung","vinorelbine","Antimicrotubule","RP2D","Expansion",11.2,1,11.2,1
+"R-8","TNBC",1,54,"black","Breast","carboplatin","Alkylating agent","RP2D","Expansion",2.2,1,8.08,1
+"R-9","HR+",1,68,"white","Omentum","liposomal doxorubicin","Anthracycline ","RP2D","Expansion",1.31,1,1.71,1
+"R-10","HR+",1,71,"black","Lymph_Node","nab-paclitaxel","Antimicrotubule","4","Escalation",46.85,1,46.85,1
+"R-11","HR+",1,52,"white",NA,NA,NA,"RP2D","Expansion",2.73,1,2.73,1
+"R-12","HR+",0,54,"white","Liver","velaparib","PARPinhibitor","4","Escalation",1.31,1,3.45,1
+"R-13","HR+",1,49,"white","Liver","doxorubicin","Anthracycline ","4","Escalation",4.8,1,4.8,1
+"R-14","TNBC",1,61,"white","Lymph_Node","docetaxel","Antimicrotubule","RP2D","Expansion",22.37,1,24.38,1
+"R-15","TNBC",1,64,"black","Lymph_Node","capecitabine","Antimetabolite","RP2D","Expansion",8.08,1,16.76,1
+"R-16","TNBC",1,62,"black","Lung","gemcitabine","Antimetabolite","RP2D","Expansion",19.52,0,24.02,0
+"R-17","TNBC",0,44,"black","Liver","olaparib","PARPinhibitor","RP2D","Expansion",2.1,1,11.99,1
+"R-18","HR+",1,51,"white","Chest_Wall","eribulin ","Antimicrotubule","RP2D","Escalation",9.23,0,67.35,0
+"R-19","HR+",1,71,"white","Lymph_Node","eribulin","Antimicrotubule","RP2D","Escalation",2.27,1,11.66,1
+"R-20","HR+",0,45,"white","Breast","everolimus","mTORinhibitor","RP2D","Expansion",7.33,1,7.33,1
+"R-21","TNBC",1,61,"black",NA,NA,NA,"RP2D","Expansion",1.41,1,1.41,1
+"R-22","HR+",1,55,"white",NA,NA,NA,"RP2D","Expansion",14.23,1,14.23,1
+"R-23","HR+",1,38,"white","Chest_Wall","eribulin","Antimicrotubule","RP2D","Expansion",5.03,1,5.03,1
+"R-24","HR+",1,58,"white","Liver","paclitaxel","Antimicrotubule","RP2D","Expansion",6.74,1,6.74,1

@@ -52,14 +52,14 @@ rootDir = "./"
 
 
 # Load data patient data
-dta_pts = read.csv(paste0(rootDir,"input_tables/table_patient_response_OS.csv"), row.names = 1)
+dta_pts = read.csv(paste0(rootDir,"input_tables/table_20patient_response.csv"), row.names = 1)
 dta_pts$ID = rownames(dta_pts)
 
 # add cohort and dose level
-dta_pts_1 = read.csv(paste0(rootDir,"input_tables/table_patient_info.csv"), row.names = 1)
-dta_pts_1$ID = rownames(dta_pts_1)
+dta_pts_24 = read.csv(paste0(rootDir,"input_tables/table_24patient_info.csv"), row.names = 1)
+dta_pts_24$ID = rownames(dta_pts_24)
 
-dta_pts = cbind(dta_pts, dta_pts_1[dta_pts$ID, c("Dose_level","Cohort")])
+dta_pts = cbind(dta_pts, dta_pts_24[dta_pts$ID, c("Dose_level","Cohort")])
 
 # number of prior therapies by subtype
 print("summary of the number of prior therapies by subtype")
@@ -393,10 +393,13 @@ pval_surv <- function(dat, type_surv = "PFS") {
 ## -------------------------------------------------------------
 
 
-pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35)
+pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35, add6m = T)
 
-os <- plot_surv(dta_pts, "OS", "Overall Survival", x_6m = 15, x_12 = 20)
+os <- plot_surv(dta_pts, "OS", "Overall Survival", x_6m = 15, x_12 = 20, add6m = T)
 
+pfs <- plot_surv(dta_pts_24, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35)
+
+os <- plot_surv(dta_pts_24, "OS", "Overall Survival", x_6m = 15, x_12 = 20)
 
 ```
 
