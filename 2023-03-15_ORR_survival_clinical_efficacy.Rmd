@@ -118,17 +118,16 @@ tab2 = get_freq_table(dta_pts, "CB_6mth_yn")
 tab3 = get_freq_table(dta_pts, "irOR")
 
 print("ORR with RECIST")
-
 datatable(tab1)
+write.csv(tab1, file = "table_orr_RECIST.csv", row.names = F)
 
 print("ORR with irRECIST")
 datatable(tab3)
-
+write.csv(tab1, file = "table_orr_irRECIST.csv", row.names = F)
 
 print("CBR")
 datatable(tab2)
-
-
+write.csv(tab1, file = "table_orr_cbr.csv", row.names = F)
 
 ```
 
@@ -144,14 +143,16 @@ tab2 = get_freq_table(dta_pts%>% filter(Dose_level != 4), "CB_6mth_yn")
 tab3 = get_freq_table(dta_pts%>% filter(Dose_level != 4), "irOR")
 
 print("ORR with RECIST")
-
 datatable(tab1)
+write.csv(tab1, file = "table_orr_RECIST_noDose4.csv", row.names = F)
 
 print("ORR with irRECIST")
 datatable(tab3)
+write.csv(tab1, file = "table_orr_irRECIST_noDose4.csv", row.names = F)
 
 print("CBR")
 datatable(tab2)
+write.csv(tab1, file = "table_orr_cbr_noDose4.csv", row.names = F)
 
 ```
 
