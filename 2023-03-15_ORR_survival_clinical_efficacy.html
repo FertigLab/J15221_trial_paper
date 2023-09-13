@@ -11,7 +11,7 @@
 
 <meta name="author" content="L. Danilova, J. A. Tandurella, C. Wang" />
 
-<meta name="date" content="2023-08-23" />
+<meta name="date" content="2023-09-13" />
 
 <title>J15221 Evanthia TNBC - Clinical efficacy, survival, ORR</title>
 
@@ -3938,7 +3938,7 @@ border-radius: 0px;
 <h1 class="title toc-ignore">J15221 Evanthia TNBC - Clinical efficacy,
 survival, ORR</h1>
 <h4 class="author">L. Danilova, J. A. Tandurella, C. Wang</h4>
-<h4 class="date">2023-08-23</h4>
+<h4 class="date">2023-09-13</h4>
 
 </div>
 
@@ -3956,6 +3956,12 @@ rootDir = &quot;./&quot;
 # Load data patient data
 dta_pts = read.csv(paste0(rootDir,&quot;input_tables/table_patient_response_OS.csv&quot;), row.names = 1)
 dta_pts$ID = rownames(dta_pts)
+
+# add cohort and dose level
+dta_pts_1 = read.csv(paste0(rootDir,&quot;input_tables/table_patient_info.csv&quot;), row.names = 1)
+dta_pts_1$ID = rownames(dta_pts_1)
+
+dta_pts = cbind(dta_pts, dta_pts_1[dta_pts$ID, c(&quot;Dose_level&quot;,&quot;Cohort&quot;)])
 
 # number of prior therapies by subtype
 print(&quot;summary of the number of prior therapies by subtype&quot;)</code></pre>
@@ -3981,10 +3987,12 @@ dta_tumor = read.csv(paste0(rootDir,&quot;input_tables/table_tumor_size_change.c
 colnames(dta_tumor) = c(&quot;ID&quot;,&#39;Days&#39;, &quot;Y&quot; )
 
 datatable(dta_pts)</code></pre>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-266cfe2b09235e714edc" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-266cfe2b09235e714edc">{"x":{"filter":"none","vertical":false,"data":[["R-1","R-2","R-4","R-5","R-6","R-7","R-8","R-9","R-10","R-12","R-13","R-14","R-15","R-16","R-17","R-18","R-19","R-20","R-23","R-24"],["TNBC","TNBC","HR+","TNBC","TNBC","TNBC","TNBC","HR+","HR+","HR+","HR+","TNBC","TNBC","TNBC","TNBC","HR+","HR+","HR+","HR+","HR+"],["SD","PR","PD","CR","SD","SD","PD","PD","SD","PD","SD","PR","SD","PR","PD","PR","PD","SD","SD","PD"],["Non-responder","Responder","Non-responder","Responder","Non-responder","Non-responder","Non-responder","Non-responder","Non-responder","Non-responder","Non-responder","Responder","Non-responder","Responder","Non-responder","Responder","Non-responder","Non-responder","Non-responder","Non-responder"],["SD","PR","PR","CR","Died","Unknown","PD","Unknown","Unknown","Off study","Died","PR","SD","PR","PD","PR","PD","Died","Died","PD"],["Yes","Yes","Yes","Yes","No","No","No","No","No","No","No","Yes","Yes","Yes","No","Yes","No","No","No","No"],["No","Yes","No","Yes","No","No","No","No","No","No","No","Yes","No","Yes","No","Yes","No","No","No","No"],["No","Yes","No","Yes","No","No","No","No","No","No","No","Yes","No","Yes","No","Yes","No","No","No","No"],[3,5,8,4,5,6,3,13,7,7,8,10,1,3,4,12,8,10,7,12],[14.52,4.83,2.27,11.43,2.83,11.2,2.2,1.31,46.85,1.31,4.8,22.37,8.08,19.52,2.1,9.23,2.27,7.33,5.03,6.74],[1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1],[50.92,19.58,13.34,52.14,2.83,11.2,8.08,1.71,46.85,3.45,4.8,24.38,16.76,24.02,11.99,67.34999999999999,11.66,7.33,5.03,6.74],[0,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1],["**","","","*","","","","","","","","","","*","","","","","",""],["R-1","R-2","R-4","R-5","R-6","R-7","R-8","R-9","R-10","R-12","R-13","R-14","R-15","R-16","R-17","R-18","R-19","R-20","R-23","R-24"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Best_Resp<\/th>\n      <th>RECIST<\/th>\n      <th>CB_6mth<\/th>\n      <th>CB_6mth_yn<\/th>\n      <th>OR<\/th>\n      <th>irOR<\/th>\n      <th>n_therapies<\/th>\n      <th>PFS_Time<\/th>\n      <th>PFS_Event<\/th>\n      <th>OS_Time<\/th>\n      <th>OS_Event<\/th>\n      <th>exceptional_response<\/th>\n      <th>ID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[8,9,10,11,12]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-1cee3b7459d60ae760e0" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1cee3b7459d60ae760e0">{"x":{"filter":"none","vertical":false,"data":[["R-1","R-2","R-4","R-5","R-6","R-7","R-8","R-9","R-10","R-12","R-13","R-14","R-15","R-16","R-17","R-18","R-19","R-20","R-23","R-24"],["TNBC","TNBC","HR+","TNBC","TNBC","TNBC","TNBC","HR+","HR+","HR+","HR+","TNBC","TNBC","TNBC","TNBC","HR+","HR+","HR+","HR+","HR+"],["SD","PR","PD","CR","SD","SD","PD","PD","SD","PD","SD","PR","SD","PR","PD","PR","PD","SD","SD","PD"],["Non-responder","Responder","Non-responder","Responder","Non-responder","Non-responder","Non-responder","Non-responder","Non-responder","Non-responder","Non-responder","Responder","Non-responder","Responder","Non-responder","Responder","Non-responder","Non-responder","Non-responder","Non-responder"],["SD","PR","PR","CR","Died","Unknown","PD","Unknown","Unknown","Off study","Died","PR","SD","PR","PD","PR","PD","Died","Died","PD"],["Yes","Yes","Yes","Yes","No","No","No","No","No","No","No","Yes","Yes","Yes","No","Yes","No","No","No","No"],["No","Yes","No","Yes","No","No","No","No","No","No","No","Yes","No","Yes","No","Yes","No","No","No","No"],["No","Yes","No","Yes","No","No","No","No","No","No","No","Yes","No","Yes","No","Yes","No","No","No","No"],[3,5,8,4,5,6,3,13,7,7,8,10,1,3,4,12,8,10,7,12],[14.52,4.83,2.27,11.43,2.83,11.2,2.2,1.31,46.85,1.31,4.8,22.37,8.08,19.52,2.1,9.23,2.27,7.33,5.03,6.74],[1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1],[50.92,19.58,13.34,52.14,2.83,11.2,8.08,1.71,46.85,3.45,4.8,24.38,16.76,24.02,11.99,67.34999999999999,11.66,7.33,5.03,6.74],[0,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1],["**","","","*","","","","","","","","","","*","","","","","",""],["R-1","R-2","R-4","R-5","R-6","R-7","R-8","R-9","R-10","R-12","R-13","R-14","R-15","R-16","R-17","R-18","R-19","R-20","R-23","R-24"],["RP2D","RP2D","RP2D","4","RP2D","RP2D","RP2D","RP2D","4","4","4","RP2D","RP2D","RP2D","RP2D","RP2D","RP2D","RP2D","RP2D","RP2D"],["Expansion","Expansion","Expansion","Escalation","Expansion","Expansion","Expansion","Expansion","Escalation","Escalation","Escalation","Expansion","Expansion","Expansion","Expansion","Escalation","Escalation","Expansion","Expansion","Expansion"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Best_Resp<\/th>\n      <th>RECIST<\/th>\n      <th>CB_6mth<\/th>\n      <th>CB_6mth_yn<\/th>\n      <th>OR<\/th>\n      <th>irOR<\/th>\n      <th>n_therapies<\/th>\n      <th>PFS_Time<\/th>\n      <th>PFS_Event<\/th>\n      <th>OS_Time<\/th>\n      <th>OS_Event<\/th>\n      <th>exceptional_response<\/th>\n      <th>ID<\/th>\n      <th>Dose_level<\/th>\n      <th>Cohort<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[8,9,10,11,12]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <div id="orr-and-cbr" class="section level1">
 <h1>ORR and CBR</h1>
+<div id="patients-with-evaulable-response" class="section level2">
+<h2>20 patients with evaulable response</h2>
 <pre class="r"><code># function from CG to calculate ORR
 get_freq_table &lt;- function(dta_pts, v_name) {
     f_tbl &lt;- function(dta) {
@@ -4025,18 +4033,45 @@ tab3 = get_freq_table(dta_pts, &quot;irOR&quot;)
 print(&quot;ORR with RECIST&quot;)</code></pre>
 <pre><code>## [1] &quot;ORR with RECIST&quot;</code></pre>
 <pre class="r"><code>datatable(tab1)</code></pre>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-ea9d5845fb8adf31c347" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-ea9d5845fb8adf31c347">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[9,1,6,4,15,5],[10,10,10,10,20,20],[90,10,60,40,75,25],[55.5,0.25,26.24,12.16,50.9,8.66],[99.75,44.5,87.84,73.76000000000001,91.34,49.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-8381df7137695f246205" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-8381df7137695f246205">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[9,1,6,4,15,5],[10,10,10,10,20,20],[90,10,60,40,75,25],[55.5,0.25,26.24,12.16,50.9,8.66],[99.75,44.5,87.84,73.76000000000001,91.34,49.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>print(&quot;ORR with irRECIST&quot;)</code></pre>
 <pre><code>## [1] &quot;ORR with irRECIST&quot;</code></pre>
 <pre class="r"><code>datatable(tab3)</code></pre>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-efa7dbe3fc92df344013" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-efa7dbe3fc92df344013">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[9,1,6,4,15,5],[10,10,10,10,20,20],[90,10,60,40,75,25],[55.5,0.25,26.24,12.16,50.9,8.66],[99.75,44.5,87.84,73.76000000000001,91.34,49.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-3e7f18eeca5efd257b6c" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3e7f18eeca5efd257b6c">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[9,1,6,4,15,5],[10,10,10,10,20,20],[90,10,60,40,75,25],[55.5,0.25,26.24,12.16,50.9,8.66],[99.75,44.5,87.84,73.76000000000001,91.34,49.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>print(&quot;CBR&quot;)</code></pre>
 <pre><code>## [1] &quot;CBR&quot;</code></pre>
 <pre class="r"><code>datatable(tab2)</code></pre>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-3ad1f34b02eb80e41c78" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-3ad1f34b02eb80e41c78">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[8,2,4,6,12,8],[10,10,10,10,20,20],[80,20,40,60,60,40],[44.39,2.52,12.16,26.24,36.05,19.12],[97.48,55.61,73.76000000000001,87.84,80.88,63.95]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-c754240921e8f4371b36" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-c754240921e8f4371b36">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[8,2,4,6,12,8],[10,10,10,10,20,20],[80,20,40,60,60,40],[44.39,2.52,12.16,26.24,36.05,19.12],[97.48,55.61,73.76000000000001,87.84,80.88,63.95]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="excluding-dose-level-4" class="section level2">
+<h2>Excluding dose level 4</h2>
+<pre class="r"><code># get table with ORR for RECIST
+tab1 = get_freq_table(dta_pts %&gt;% filter(Dose_level != 4), &quot;OR&quot;)
+# get table with CBR for RECIST
+tab2 = get_freq_table(dta_pts%&gt;% filter(Dose_level != 4), &quot;CB_6mth_yn&quot;)
+
+# get table with ORR for irRECIST
+tab3 = get_freq_table(dta_pts%&gt;% filter(Dose_level != 4), &quot;irOR&quot;)
+
+print(&quot;ORR with RECIST&quot;)</code></pre>
+<pre><code>## [1] &quot;ORR with RECIST&quot;</code></pre>
+<pre class="r"><code>datatable(tab1)</code></pre>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-c7d5f87af66b2096f1a4" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-c7d5f87af66b2096f1a4">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[6,1,6,3,12,4],[7,7,9,9,16,16],[85.71428571428571,14.28571428571429,66.66666666666667,33.33333333333334,75,25],[42.13,0.36,29.93,7.49,47.62,7.27],[99.64,57.87,92.51000000000001,70.06999999999999,92.73,52.38]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>print(&quot;ORR with irRECIST&quot;)</code></pre>
+<pre><code>## [1] &quot;ORR with irRECIST&quot;</code></pre>
+<pre class="r"><code>datatable(tab3)</code></pre>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-d71980bcc087aae01b09" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d71980bcc087aae01b09">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[6,1,6,3,12,4],[7,7,9,9,16,16],[85.71428571428571,14.28571428571429,66.66666666666667,33.33333333333334,75,25],[42.13,0.36,29.93,7.49,47.62,7.27],[99.64,57.87,92.51000000000001,70.06999999999999,92.73,52.38]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>print(&quot;CBR&quot;)</code></pre>
+<pre><code>## [1] &quot;CBR&quot;</code></pre>
+<pre class="r"><code>datatable(tab2)</code></pre>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-f5659b47565282823269" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-f5659b47565282823269">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["HR+","HR+","TNBC","TNBC","Overall","Overall"],["No","Yes","No","Yes","No","Yes"],[5,2,4,5,9,7],[7,7,9,9,16,16],[71.42857142857143,28.57142857142857,44.44444444444444,55.55555555555556,56.25,43.75],[29.04,3.67,13.7,21.2,29.88,19.75],[96.33,70.95999999999999,78.8,86.3,80.25,70.12]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Subtype<\/th>\n      <th>Resp<\/th>\n      <th>N<\/th>\n      <th>Total<\/th>\n      <th>Freq<\/th>\n      <th>CI_Lb<\/th>\n      <th>CI_Ub<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
 </div>
 <div id="best-response" class="section level1">
 <h1>Best response</h1>
