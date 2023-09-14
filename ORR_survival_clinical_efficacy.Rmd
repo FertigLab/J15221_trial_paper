@@ -1,0 +1,405 @@
+---
+title: "J15221 Evanthia TNBC - Clinical efficacy, survival, ORR"
+author: "L. Danilova, J. A. Tandurella, C. Wang"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE)
+rm(list = ls())
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(ggrepel)
+library(data.table)
+library("DT")
+library(gridExtra)
+library(survival)
+library(survminer)
+
+##Create All Facet for plotting
+CreateAllFacet <- function(df, col){
+  df$Subtype <- df[[col]]
+  temp <- df
+  temp$Subtype <- "Overall"
+  merged <-rbind(temp, df)
+
+  # ensure the facet value is a factor
+  merged[[col]] <- factor(merged[[col]], levels = c("HR+", "TNBC", "Overall"))
+
+  return(merged)
+}
+# function from CG to calculate ORR
+get_freq_table <- function(dta_pts, v_name) {
+    f_tbl <- function(dta) {
+        rst <- dta %>%
+            group_by(Subtype, Resp) %>%
+            summarize(N = n()) %>%
+            left_join(dta %>%
+                      group_by(Subtype) %>%
+                      summarize(Total = n())) %>%
+            mutate(Freq = 100 * N / Total) %>%
+            select(Subtype, Resp, N, Total, Freq) %>%
+            data.frame()
+
+        ci <- NULL
+        for (i in seq_len(nrow(rst))) {
+            cur_ci <- binom.test(rst[i, "N"], rst[i, "Total"])$conf.int
+            ci     <- round(rbind(ci, 100 * cur_ci),2)
+        }
+
+        colnames(ci) <- c("CI_Lb", "CI_Ub")
+        cbind(rst, data.frame(ci))
+    }
+
+    dta_pts$Resp <- dta_pts[[v_name]]
+    dta_pts_2    <- dta_pts %>%
+        mutate(Subtype = "Overall")
+
+    rst <- rbind(f_tbl(dta_pts), f_tbl(dta_pts_2))
+}
+
+#=======================
+# it finds the minimum Y per patient
+# what is Y I'm not sure
+get_tumor_best <- function(dat_tumor) {
+    dta_tumor %>%
+        filter(0 != Days) %>%
+        group_by(ID) %>%
+        filter(Y == min(Y)) %>%
+        mutate(Y = Y * 100) %>%
+        arrange(desc(Y))
+}
+
+##========================
+# modified functions from CG
+##========================
+get_median_txt <- function(rst_survival, unit = "Months ", digits = 1) {
+    rst_sum <- rbind(summary(rst_survival)$table)
+    print(rst_sum)
+    grps    <- sapply(rownames(rst_sum),
+                      function(x) gsub("Subtype=|Group=", "", x))
+    # median survival by group
+    med     <- round(rst_sum[, "median"], digits)
+    # lower 95% CI
+    ci_l <- round(rst_sum[, "0.95LCL"], digits)
+    # upper 95% CI
+    ci_u <- round(rst_sum[, "0.95UCL"], digits)
+   
+    gm<- apply(cbind(grps, med, ci_l, ci_u), 1,
+              function(x) paste0(x[1], " = ", x[2], ' (95% CI = [', x[3],', ', x[4],'])'))
+
+    median_txt <- paste("Median Survival in ", unit, " \n ",
+                        paste(gm, collapse = "\n"), sep = "")
+
+    median_txt
+}
+
+# returns survival rate at specified time
+get_surv_txt <- function(rst_survival, time = 6, digits = 0) {
+    rst_sum <- summary(rst_survival, times = time)
+    grps    <- gsub("Subtype=|Group=", "",rst_sum$strata)
+    # survival by group
+    surv_rate     <- round(rst_sum$surv*100, digits)
+    # lower 95% CI
+    ci_l <- round(rst_sum$lower*100, digits)
+    # upper 95% CI
+    ci_u <- round(rst_sum$upper*100, digits)
+   
+    # gm<- apply(cbind(grps, surv_rate, ci_l, ci_u), 1,
+    #           function(x) paste0(x[1], " = ", x[2], ' (95% CI = [', x[3],', ', x[4],'])'))
+    gm<- apply(cbind(surv_rate, ci_l, ci_u), 1,
+              function(x) paste0( x[1], '% [', x[2],'%, ', x[3],'%]'))
+    gm
+}
+
+## plot survival curves
+plot_surv <- function(dat, type_surv = "PFS", title = "",
+                      add_overall = TRUE, xlim = 70, xtext = 50,
+                      x_6m = 9, x_12 = 18, add6m = FALSE) {
+
+    # p-value for HR+ vs TNBC
+    dat$time  <- dat[[paste0(type_surv, "_Time")]]
+    dat$event <- dat[[paste0(type_surv, "_Event")]]
+    rst_surv_two_groups <- survfit(Surv(time, event) ~ Subtype, data = dat)
+    #extract p-value
+    p_val = round(surv_pvalue(rst_surv_two_groups, data = dat)$pval,3)
+#     print(p_val)
+    
+    # add All as a subtype
+    dat       <- CreateAllFacet(dat, "Subtype")
+    dat$time  <- dat[[paste(type_surv, "_Time",  sep = "")]]
+    dat$event <- dat[[paste(type_surv, "_Event", sep = "")]]
+
+    rst_survival <- survfit(Surv(time, event) ~ Subtype, data = dat)
+    # get text for median survival
+    median_txt   <- get_median_txt(rst_survival)
+    # get text for 6 months
+    text_6m = get_surv_txt(rst_survival)
+    #get text for 12 months
+    text_12m = get_surv_txt(rst_survival, 12)
+    
+    attr(rst_survival$strata, "names") <-
+        sapply(attr(rst_survival$strata, "names"),
+               function(x) gsub("Subtype=", "", x))
+
+    rst_plot     <- ggsurvplot(rst_survival,
+                               data = dat,
+                               risk.table = T,
+                               break.time.by = 6,
+                               legend = "top",
+                               xlab = "Time (in months)",
+                               ylab = "Survival Probability", conf.int = FALSE,
+                               title = title,
+                               palette =c(subtypeCol, "Overall" = 'black'),
+                               ylim = c(0, 1), xlim = c(0, xlim),
+                               legend.title = "",
+                               tables.y.text = FALSE)
+
+#    rst_plot$table <- rst_plot$table
+
+    rst_plot$plot <- rst_plot$plot +
+      # add text with median survival
+        ggplot2::annotate("text", x = xtext, y = 0.65,
+                          size = 3.5, label = median_txt) + 
+      # add horizontal line at 50% survival rate
+      geom_hline(yintercept = .5, linetype="dashed", color = 'grey25',)
+
+    if(add6m) rst_plot$plot <- rst_plot$plot +
+      # add vertical line at 6 months
+  geom_vline(xintercept = 6, linetype="dashed", color = 'grey25')+
+      # add survival values for groups at 6 months
+     annotate(geom="text", x=x_6m, y=1, label= text_6m[1],color = subtypeCol["HR+"], fill= 'white', )+
+      annotate(geom="text", x=x_6m, y=.96, label= text_6m[2],color = subtypeCol["TNBC"])+
+      annotate(geom="text", x=x_6m, y=.92, label= text_6m[3],color = 'black')+
+      # add vertical line at 12 months
+      geom_vline(xintercept = 12, linetype="dashed", color = 'grey25')+
+      # add survival values for groups at 6 months
+     annotate(geom="text", x=x_12, y=.86, label= text_12m[1],color = subtypeCol["HR+"])+
+      annotate(geom="text", x=x_12, y=.82, label= text_12m[2],color = subtypeCol["TNBC"])+
+      annotate(geom="text", x=x_12, y=.78, label= text_12m[3],color = 'black')
+
+          
+      # print p-value
+      print(paste("The p-value for HR+ vs TNBC is", p_val))
+
+    print(rst_plot)
+}
+
+pval_surv <- function(dat, type_surv = "PFS") {
+    dat$time  <- dat[[paste(type_surv, "_Time",  sep = "")]]
+    dat$event <- dat[[paste(type_surv, "_Event", sep = "")]]
+
+    surv_dat <- dat %>%
+        dplyr::filter(Subtype != "Overall") %>%
+        data.frame()
+
+    rst <- survfit(Surv(time, event) ~ Subtype,
+                   data = surv_dat)
+    surv_pvalue(rst, data = surv_dat)
+}
+
+
+```
+
+
+```{r  fig.width = 10}
+# set colors
+recistCol = c("Non-responder" = "red","Responder" = "blue")
+cbrCol = c("CR,PR,SD" = "blue","PD" = "red")
+subtypeCol = c("HR+" = "red", "TNBC" = "blue")
+timeCol = c("Baseline" = "black", "Time 1" = 'grey45', "Time 2" = 'grey75')
+
+# set root folder
+rootDir = "./"
+
+
+# Load data patient data
+dta_pts = read.csv(paste0(rootDir,"input_tables/table_24patient_info.csv"), row.names = 1)
+dta_pts$ID = rownames(dta_pts)
+
+# number of prior therapies by subtype
+print("summary of the number of prior therapies by subtype")
+print(aggregate(dta_pts$n_therapies, by = list(dta_pts$Subtype), FUN = summary))
+t.test(dta_pts$n_therapies ~ dta_pts$Subtype)
+
+
+# load data for a spider plot
+dta_tumor = read.csv(paste0(rootDir,"input_tables/table_tumor_size_change.csv"))
+colnames(dta_tumor) = c("ID",'Days', "Y" )
+
+datatable(dta_pts)
+
+```
+
+
+# ORR and CBR
+## 20 patients with evaulable response
+
+```{r  fig.width = 10}
+dta_pts_20 = dta_pts %>% filter(Best_Resp != "Unknown")
+
+# get table with ORR for RECIST
+tab1 = get_freq_table(dta_pts_20, "OR")
+# get table with CBR for RECIST
+tab2 = get_freq_table(dta_pts_20, "CB_6mth_yn")
+
+# get table with ORR for irRECIST
+tab3 = get_freq_table(dta_pts_20, "irOR")
+
+print("ORR with RECIST")
+datatable(tab1)
+write.csv(tab1, file = "table_orr_RECIST.csv", row.names = F)
+
+print("ORR with irRECIST")
+datatable(tab3)
+write.csv(tab1, file = "table_orr_irRECIST.csv", row.names = F)
+
+print("CBR")
+datatable(tab2)
+write.csv(tab1, file = "table_orr_cbr.csv", row.names = F)
+
+```
+
+## Excluding dose level 4
+
+```{r  fig.width = 10}
+# get table with ORR for RECIST
+tab1 = get_freq_table(dta_pts_20 %>% filter(Dose_level != 4), "OR")
+# get table with CBR for RECIST
+tab2 = get_freq_table(dta_pts_20%>% filter(Dose_level != 4), "CB_6mth_yn")
+
+# get table with ORR for irRECIST
+tab3 = get_freq_table(dta_pts_20%>% filter(Dose_level != 4), "irOR")
+
+print("ORR with RECIST")
+datatable(tab1)
+write.csv(tab1, file = "table_orr_RECIST_noDose4.csv", row.names = F)
+
+print("ORR with irRECIST")
+datatable(tab3)
+write.csv(tab1, file = "table_orr_irRECIST_noDose4.csv", row.names = F)
+
+print("CBR")
+datatable(tab2)
+write.csv(tab1, file = "table_orr_cbr_noDose4.csv", row.names = F)
+
+```
+
+# Best response
+
+
+```{r  fig.width = 7}
+
+
+#=========================================
+# # waterfall plot of Best Overall Response (%)
+
+# adds patient info to tumor data
+dat <- get_tumor_best(dta_tumor) %>%
+        left_join(dta_pts)
+
+# reproducing waterfall plot of best response
+wtr1 = ggplot(dat, aes(x = reorder(ID, -Y), y = Y, fill = Subtype)) +
+  ylab ("Best Overall Response (%)") +
+  xlab("Patients") +
+  geom_bar(stat = "identity") + ylim(-100, 100) +
+  scale_fill_manual(values = subtypeCol) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = c(-30, 20), linetype = 'dashed') +
+  geom_text(aes(y=1, label = exceptional_response), size = 6)
+
+print(wtr1)
+#===============
+# waterfall of months
+#==============
+dat <- get_tumor_best(dta_tumor) %>%
+        left_join(dta_pts) %>%
+        mutate(Days = Days / 30.5) %>% # convert days to months
+        arrange(Subtype, Days)
+# make ID as factor with order organized by type and days. 
+# otherwise, barplot makes it in alphabetical order
+dat$ID = factor(dat$ID, levels = dat$ID)
+
+wtr2 = ggplot(dat, aes(x = Days, y = ID, fill = Subtype)) +
+  ylab("Patients") +
+  geom_bar(stat = "identity") +
+  theme_bw()+
+  labs(x = "Months")+
+  scale_fill_manual(values = subtypeCol) +
+  geom_text(aes(y=ID, x = Days + 1, label = exceptional_response), size = 6)
+
+print(wtr2)
+
+#====================
+# spider plot
+#====================
+  # keep only sample from patients with patient info
+dta_tumor <- dta_tumor %>% filter(ID %in% dta_pts$ID)
+    # add patient into to tumor data
+    dat <- dta_tumor %>%
+        left_join(dta_pts) %>%
+        mutate(Days = Days / 30.5,
+               Y    = Y *  100) %>%
+        arrange(ID, Days)
+    # add stars
+    dta_star <- dat %>%
+        filter(exceptional_response == "*") %>%
+        group_by(ID) %>%
+        filter(Days == max(Days)) %>%
+        mutate(Days = Days,
+               label = "*") %>% 
+        rbind(dat %>%
+        filter(exceptional_response == "**") %>%
+        group_by(ID) %>%
+        filter(Days == max(Days)) %>%
+        mutate(Days = Days,
+               label = "**"))
+    # make plot
+sp1 = ggplot(data = dat, aes(x = Days, y = Y)) +
+        geom_line(aes(group = ID, col = Subtype), size = 1.5) +
+        theme_bw() +
+        labs(x = "Months", y = "Percent Change") +
+        geom_hline(yintercept = 0) +
+        geom_hline(yintercept = 30,  lty = 2) +
+        geom_hline(yintercept = -30, lty = 2) +
+        scale_colour_manual(values = subtypeCol) +
+        geom_text(data = dta_star,
+                  aes(x = Days, y = Y+1, label = label),size = 6)+
+  theme(legend.title = element_blank(), legend.position = c(0.5, 0.88))
+
+print(sp1)
+
+
+```
+
+
+# Survival analysis
+
+```{r fig.height= 8}
+
+## -------------------------------------------------------------
+##            Survival
+## -------------------------------------------------------------
+
+
+pfs <- plot_surv(dta_pts_20, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35, add6m = T)
+
+os <- plot_surv(dta_pts_20, "OS", "Overall Survival", x_6m = 15, x_12 = 20, add6m = T)
+
+pfs <- plot_surv(dta_pts, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35)
+
+os <- plot_surv(dta_pts, "OS", "Overall Survival", x_6m = 15, x_12 = 20)
+
+```
+
+```{r}
+sessionInfo()
+```

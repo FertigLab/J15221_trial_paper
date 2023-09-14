@@ -1,0 +1,313 @@
+---
+title: "J15221 Evanthia TNBC - Correlation of Luminex with response and subtype"
+author: "Ludmila Danilova & Joseph Tandurella"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE)
+rm(list = ls())
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(ggrepel)
+library(data.table)
+library("DT")
+library(gridExtra)
+library(scales)
+
+##Create All Facet for plotting
+CreateAllFacet <- function(df, col){
+  df$facet <- df[[col]]
+  temp <- df
+  temp$facet <- "All"
+  merged <-rbind(temp, df)
+
+  # ensure the facet value is a factor
+  merged[[col]] <- as.factor(merged[[col]])
+
+  return(merged)
+}
+
+
+```
+
+## Create figures for the clinical paper
+Luminex data units:
+ng/ml	for sCD137 and	Granzyme A
+
+pg/ml	for IFNg	IL-10	IL-12(p40)	IL-12(p70)	IL-2	IL-6	IL-8
+
+
+```{r  fig.width = 10}
+# labels for time points
+timeLab  = c("Baseline", "Post Run-in", "Week 8")
+
+# set colors
+recistCol = c("Non-responder" = "red","Responder" = "blue")
+cbrCol = c("CR,PR,SD" = "blue","PD" = "red")
+subtypeCol = c("HR+" = "red", "TNBC" = "blue")
+timeCol = setNames(c("black", 'grey45', 'grey75'), timeLab)
+
+# set root folder
+rootDir = "./"
+
+# Load data patient data
+dta_pts = read.csv(paste0(rootDir,"input_tables/table_24patient_info.csv"), row.names = 1)
+dta_pts$ID = rownames(dta_pts)
+
+# remove patients with no response
+dta_pts = dta_pts %>% filter(Best_Resp != "Unknown")
+
+#==========================
+# file with TILs and PDL1 data
+dat = read.csv(paste0(rootDir,"input_tables/table_per_sample_values.csv"))
+
+
+#===========================
+# add patient info 
+dat = cbind(dat,  dta_pts[dat$patientID,])
+
+df_Baseline <- dat %>% filter(timePoint == 'Baseline')
+
+df_sampInfo <- CreateAllFacet(dat, "Subtype")
+df_sampInfo_recist <- CreateAllFacet(dat, "RECIST")
+
+cytokines = colnames(dat)[10:18]
+units = setNames(rep(c("pg/ml", "ng/ml"), times = c(7,2)), cytokines)
+
+```
+
+
+## Baseline samples. Cytokines by subtype 
+
+
+```{r }
+
+#================
+
+
+##Type (HR+ vs TNBC)
+for(i in cytokines)
+{
+  df = cbind(protein = df_Baseline[,i], df_Baseline[,c("RECIST","Subtype") ] )
+  print(ggplot(df, aes(x=Subtype, y=protein)) + 
+    geom_boxplot() + 
+    labs(title=paste0(i,". Baseline Samples")) + 
+    stat_compare_means(comparisons= list(c("HR+","TNBC")), label.y.npc = 0.85, method = "wilcox")+ 
+    scale_y_continuous(trans = "log10", labels = comma) +
+    theme_bw()+ 
+    ylab(paste(i,"(",units[i],")"))+
+    geom_point(shape=16))
+}
+```
+
+
+## Cytokines by RECIST 
+### Table 
+with mean and +/- standard deviation for responders and non-responder by RECIST, and p-value from Wilcoxon rank-sum test
+
+Additionally, Wilcoxon test for each time point comparing responders vs non-responders. And paired Wilcoxon p-values for baseline vs post run-in and post run-in vs week 8.
+Then take differences between all time points and compare responders vs non-responders to see if there is significant difference in changes after treatment
+
+
+```{r echo=FALSE,  fig.width = 10}
+
+# create table with descriptive statistics for responders and non-responders and p-values
+
+tab = sapply(cytokines, function(i){
+  df = data.frame(protein = dat[,i],dat[,c("timePoint","RECIST")]) 
+  # responders
+  resp = df %>% filter(RECIST == "Responder" & timePoint == timeLab[1]) %>% select(protein) %>% unlist()
+  resp1 = df %>% filter(RECIST == "Responder" & timePoint == timeLab[2]) %>% select(protein) %>% unlist()
+  resp2 = df %>% filter(RECIST == "Responder" & timePoint == timeLab[3]) %>% select(protein) %>% unlist()
+  # non-responders
+  nresp = df %>% filter(RECIST == "Non-responder" & timePoint == timeLab[1])%>% select(protein)%>% unlist()
+  nresp1 = df %>% filter(RECIST == "Non-responder" & timePoint == timeLab[2])%>% select(protein)%>% unlist()
+  nresp2 = df %>% filter(RECIST == "Non-responder" & timePoint == timeLab[3])%>% select(protein)%>% unlist()
+
+  # p-values
+   res = compare_means(protein ~ RECIST, df, group.by = "timePoint")
+   
+ c(baseline_mean_sd_resp = paste0(round(mean(resp, na.rm = T),2),"+/-",
+    round(sd(resp, na.rm = T),2)),
+   baseline_mean_sd_non_resp =  paste0(round(mean(nresp, na.rm = T),2),"+/-",
+    round(sd(nresp, na.rm = T),2)),
+   baseline_p_value = res[1,'p.format'] 
+   
+   # timepoint1_mean_resp = round(mean(resp1, na.rm = T),2),
+   # timepoint1_mean_non_resp = round(mean(nresp1, na.rm = T),2),
+   # timepoint1_p_value = res[2,'p.format'],
+   # 
+   # timepoint2_mean_resp = round(mean(resp2, na.rm = T),2),
+   # timepoint2_mean_non_resp = round(mean(nresp2, na.rm = T),2),
+   # timepoint2_p_value = res[3,'p.format']
+   ) 
+
+})
+
+tab = t(tab)
+colnames(tab) = gsub(".p.format","", colnames(tab))
+
+
+datatable(tab)
+
+write.csv(tab, file = "table_cytokines_baseline_by_response.csv", quote = F)
+
+
+res = c()
+  for (k in cytokines)
+  {
+    mat <- data.frame(matrix(nrow = length(unique(dat$patientID)),
+      ncol = 3, dimnames = list(unique(dat$patientID),
+                      levels(factor(dat$timePoint)))), check.names = F)
+    for(i in levels(factor(dat$timePoint)))
+    {
+      d1 = dat %>% filter(timePoint == i)
+      mat[d1$patientID, i] = d1[,k]
+    }
+    # add response
+    mat$RECIST = dta_pts[rownames(mat),"RECIST"]
+    # create treatment effect 
+    # substract baseline from post run-in and week 8 
+    mat$delta_T1_B =  mat[,2]-mat[,1]
+    mat$delta_T2_B =  mat[,3]-mat[,1]
+    # and week 8 from post run-in 
+    mat$delta_T2_T1 =  mat[,3]-mat[,2]
+    
+    # running paired test
+    # Baseline vs post run-in
+    p1 = wilcox.test(mat[,1], mat[,2], paired = T)$p.value
+    # post run-in vs week 8
+    p2 = wilcox.test(mat[,2], mat[,3], paired = T)$p.value
+    
+    # test by response
+    # for baseline 
+    p3 = wilcox.test(Baseline ~ RECIST, data = mat)$p.value
+    # for post run-in 
+    p4 = wilcox.test(mat[,2] ~ mat[,"RECIST"], data = mat)$p.value
+    # for week 8
+    p5 = wilcox.test(mat[,3] ~ mat[,"RECIST"], data = mat)$p.value
+    # compare differences in treatment effect in responders vs non-responders
+    p6 = wilcox.test(delta_T1_B ~ RECIST, data = mat)$p.value
+    p7 = wilcox.test(delta_T2_B ~ RECIST, data = mat)$p.value
+    p8 = wilcox.test(delta_T2_T1 ~ RECIST, data = mat)$p.value
+   
+    res = rbind(res, c(BvsT1 = p1,T1vsT2 = p2, B_RvsNR = p3, T1_RvsNR = p4, T2_RvsNR = p5, d_T1_B_RvsNR = p6, d_T2_B_RvsNR = p7, d_T2_T1_RvsNR = p8))
+  }
+
+rownames(res) = cytokines
+res = round(res,3)
+
+datatable(res)
+
+write.csv(res, file = "table_cytokines_all_pvalues.csv", quote = F)
+
+```
+
+### Boxplots of all samples by RECIST and time point
+
+```{r fig.width = 10}
+
+##RECIST (Responders vs. Nonresponders)
+for(i in cytokines)
+{
+  df = cbind(protein = dat[,i], dat[,c("RECIST","Subtype", "timePoint") ] )
+print(ggplot(df, aes(x=RECIST, y=protein)) +
+  geom_boxplot() +
+  labs(title=paste0(i,". All Samples")) +
+  ylab(paste(i,"(",units[i],")"))+
+  stat_compare_means(method = "wilcox.test") +
+  geom_point(aes(color=Subtype)) +
+  scale_y_log10()+
+  scale_color_manual(values = subtypeCol) +
+  facet_wrap("timePoint")+
+  theme_bw())
+}
+## paired boxplots by time and RECIST
+for(i in cytokines[1:9])
+{
+  df = cbind(protein = df_sampInfo_recist[,i], df_sampInfo_recist[,c("patientID", "timePoint", "RECIST","Subtype", "facet") ] )
+  
+    print(ggpaired(df , x="timePoint",y="protein", id = "patientID", line.size = 0.4, line.color = "RECIST",palette =  recistCol,
+     title = paste0(i, ". All Samples"), xlab="Time", ylab = paste(i,"(",units[i],")")) +
+      facet_wrap("facet") +
+      scale_x_discrete(labels=timeLab)+
+      scale_y_continuous(trans = "log10", labels = comma)+
+      stat_compare_means(comparisons = list(c(timeLab[1],timeLab[2]), c(timeLab[1],timeLab[3]), c(timeLab[2],timeLab[3]))))
+}
+
+```
+
+### Boxplots of baseline samples by RECIST and subtype
+
+```{r   fig.width = 10}
+
+##RECIST (Responders vs. Nonresponders)
+for(i in cytokines)
+{
+  df = cbind(protein = df_Baseline[,i], df_Baseline[,c("RECIST","Subtype") ] )
+print(ggplot(CreateAllFacet(df, "Subtype"), aes(x=RECIST, y=protein)) +
+  geom_boxplot() +
+  labs(title=paste0(i,". Baseline Samples")) +
+  ylab(paste(i,"(",units[i],")"))+
+  stat_compare_means() +
+  geom_point(aes(color=Subtype)) +
+  scale_y_log10()+
+  scale_color_manual(values = subtypeCol) +
+  facet_wrap("facet")+
+  theme_bw())
+}
+# create table with descriptive statistics for responders and non-responders and p-values
+tab = sapply(cytokines, function(i){
+  df = data.frame(protein = df_Baseline[,i],RECIST = df_Baseline[,"RECIST"] )
+  # responders
+  resp = df %>% filter(RECIST == "Responder")
+  # non-responders
+  nresp = df %>% filter(RECIST == "Non-responder")
+ 
+ c(unit = units[i], 
+   mean_resp = round(mean(resp$protein, na.rm = T),2),
+   sd_resp = round(sd(resp$protein, na.rm = T),2),
+   mean_non_resp = round(mean(nresp$protein, na.rm = T),2),
+   sd_non_resp = round(sd(nresp$protein, na.rm = T),2),
+   p_value = compare_means(protein ~ RECIST, df)$p.format) #p-values
+})
+
+
+```
+
+
+## Cytokines by subtype and RECIST
+
+
+```{r  fig.width = 10}
+
+##by type and RECIST
+for(i in cytokines[1:9])
+{
+  df = cbind(protein = df_sampInfo[,i], df_sampInfo[,c("patientID", "timePoint", "RECIST","Subtype", "facet") ] )
+  
+    print(ggpaired(df , x="timePoint",y="protein", id = "patientID", line.color = "RECIST", line.size = 0.4,
+     palette =  recistCol, title = paste0(i, ". All Samples"), xlab="Time", ylab = paste(i,"(",units[i],")")) +
+      scale_x_discrete(labels=timeLab)+
+      facet_wrap("facet") +
+      scale_y_continuous(trans = "log10", labels = comma)+
+      stat_compare_means(comparisons = list(c(timeLab[1],timeLab[2]), c(timeLab[1],timeLab[3]), c(timeLab[2],timeLab[3]))))
+}
+
+
+```
+```{r }
+sessionInfo()
+```
+
+
+
+
