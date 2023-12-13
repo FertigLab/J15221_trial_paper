@@ -64,7 +64,7 @@ markers = colnames(cytof_dat)[4:ncol(cytof_dat)]
 cytof_dat = cbind(cytof_dat,  dta_pts[cytof_dat$patientID,])
 cat("The number of patients with CYTOF data:", length(intersect(cytof_dat$patientID, dta_pts$ID)))
 # print the number of pairs between time points
-printPairs(cytof_dat)
+mat = printPairs(cytof_dat)
 
 # take only baseline and time 1 values
 df_BvT1 <- cytof_dat %>% filter(timePoint %in% c('Baseline','Post Run-in'))
