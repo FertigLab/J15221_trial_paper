@@ -23,20 +23,7 @@ library("DT")
 library(gridExtra)
 library(scales)
 
-##Create All Facet for plotting
-CreateAllFacet <- function(df, col){
-  df$facet <- df[[col]]
-  temp <- df
-  temp$facet <- "All"
-  merged <-rbind(temp, df)
-
-  # ensure the facet value is a factor
-  merged[[col]] <- as.factor(merged[[col]])
-
-  return(merged)
-}
-
-
+source("functions.r")
 ```
 
 Create figures for the clinical paper
@@ -70,11 +57,14 @@ table(dta_pts$RECIST)
 # file with TILs and PDL1 data
 cytof_dat = read.csv(paste0(rootDir,"input_tables/table_cytof_marker_expression.csv"))
 
+
 markers = colnames(cytof_dat)[4:ncol(cytof_dat)]
 #===========================
 # add patient info 
 cytof_dat = cbind(cytof_dat,  dta_pts[cytof_dat$patientID,])
 cat("The number of patients with CYTOF data:", length(intersect(cytof_dat$patientID, dta_pts$ID)))
+# print the number of pairs between time points
+printPairs(cytof_dat)
 
 # take only baseline and time 1 values
 df_BvT1 <- cytof_dat %>% filter(timePoint %in% c('Baseline','Post Run-in'))

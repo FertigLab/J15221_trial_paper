@@ -23,19 +23,7 @@ library(pheatmap)
 library(gridExtra)
 library(scales)
 
-##Create All Facet for plotting
-CreateAllFacet <- function(df, col){
-  df$facet <- df[[col]]
-  temp <- df
-  temp$facet <- "All"
-  merged <-rbind(temp, df)
-
-  # ensure the facet value is a factor
-  merged[[col]] <- as.factor(merged[[col]])
-
-  return(merged)
-}
-
+source("functions.r")
 
 ```
 
@@ -64,7 +52,6 @@ dta_pts = dta_pts %>% filter(Best_Resp != "Unknown")
 #==========================
 # file with TILs and PDL1 data
 dat = read.csv(paste0(rootDir,"input_tables/table_per_sample_values.csv"))
-
 
 #===========================
 # add patient info 
