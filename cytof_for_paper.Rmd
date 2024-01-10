@@ -85,68 +85,21 @@ We took the differences between all time points and then compare those differenc
 ```{r  fig.width=6}
 
 # Calculate p-values from Wilcoxon test: paired for time points and not paired for response
+
 res = c()
 # split by clusters
 cytof_dat_byClust = split(cytof_dat, f = factor(cytof_dat$cluster))
+
 for(j in names(cytof_dat_byClust))
 {
   #
   d = cytof_dat_byClust[[j]]
   for (k in markers)
   {
-    # create per patient matrix with three time points in columns
-    # some values would be NA
-    mat <- data.frame(matrix(nrow = length(unique(d$patientID)),
-      ncol = 3, dimnames = list(unique(d$patientID),
-                      levels(factor(d$timePoint)))), check.names = F)
-    # fill in matrix
-    for(i in levels(factor(d$timePoint)))
-    {
-      d1 = d %>% filter(timePoint == i)
-      mat[d1$patientID, i] = d1[,k]
-    }
-    # add response
-    mat$RECIST = cytof_dat[rownames(mat),"RECIST"]
-    # create treatment effect 
-    # substract baseline from post run-in and week 8 
-    mat$delta_T1_B =  mat[,2]-mat[,1]
-    mat$delta_T2_B =  mat[,3]-mat[,1]
-    # and week 8 from post run-in 
-    mat$delta_T2_T1 =  mat[,3]-mat[,2]
-    
-    # running paired test
-    # Baseline vs post run-in
-    p1 = wilcox.test(mat[,1], mat[,2], paired = T)$p.value
-    # post run-in vs week 8
-    p2 = wilcox.test(mat[,2], mat[,3], paired = T)$p.value
-    
-    # test by response
-    # for baseline 
-    p3 = wilcox.test(Baseline ~ RECIST, data = mat)$p.value
-    # for post run-in 
-    p4 = wilcox.test(mat[,2] ~ mat[,"RECIST"], data = mat)$p.value
-    # for week 8
-    p5 = wilcox.test(mat[,3] ~ mat[,"RECIST"], data = mat)$p.value
-    # compare differences in treatment effect in responders vs non-responders
-    p6 = wilcox.test(delta_T1_B ~ RECIST, data = mat)$p.value
-    p7 = wilcox.test(delta_T2_B ~ RECIST, data = mat)$p.value
-    p8 = wilcox.test(delta_T2_T1 ~ RECIST, data = mat)$p.value
-   
-    # combine all p-values and add means
-    res = rbind(res, c(marker = k, cluster = j, BvsT1 = round(p1,3),
-                       T1vsT2 = round(p2,3), B_RvsNR = round(p3,3), 
-                       T1_RvsNR = round(p4,3), T2_RvsNR = round(p5,3), 
-                       d_T1_B_RvsNR = round(p6,3), 
-                       d_T2_B_RvsNR = round(p7,3), 
-                       d_T2_T1_RvsNR = round(p8,3),
-                       mean_d_T1_B_R = round(mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T1_B) %>% unlist(), na.rm = T),3),
-                       mean_d_T1_B_NR = round(mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T1_B) %>% unlist(), na.rm = T),3),
-                       mean_d_T2_B_R = round(mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T2_B) %>% unlist(), na.rm = T),3),
-                       mean_d_T2_B_NR = round(mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T2_B) %>% unlist(), na.rm = T),3),
-                       mean_d_T2_T1_R = round(mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T2_T1) %>% unlist(), na.rm = T),3),
-                       mean_d_T2_T1_NR = round(mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T2_T1) %>% unlist(), na.rm = T),3)))
+    res = rbind(res, c(marker = k, cluster = j, runWilcox(k, d, dta_pts)))
   }
 }
+
 res = res[order(res[,'marker']),]
 
 datatable(res)

@@ -1,5 +1,90 @@
 # Fucntions to be used in all scripts
 
+# paired Wilcoxon test
+# k is a column in dat
+pairedWilcox = function(k, dat)
+{
+  # create matrix patients vs time points  
+  library(Matrix)
+  mat = sparseMatrix(i = as.numeric(as.factor(dat$patientID)), 
+                     j = as.numeric(as.factor(dat$timePoint)), x = 1, 
+                     dimnames = list(levels(as.factor(dat$patientID)),
+                                     levels(as.factor(dat$timePoint))))
+  mat = as.data.frame(as.matrix(mat))
+  
+  # running paired test
+  # Baseline vs C1D1
+  p1 = wilcox.test(as.numeric(mat[,1]), as.numeric(mat[,2]), paired = T)$p.value
+  #  C1D1 vs  C2D1
+  p2 = wilcox.test(as.numeric(mat[,2]), as.numeric(mat[,3]), paired = T)$p.value
+  #  Baseline vs  C2D1
+  p3 = wilcox.test(as.numeric(mat[,1]), as.numeric(mat[,3]), paired = T)$p.value
+  
+  # mean of delta between time points
+  d1 = mean(as.numeric(mat[,2]) -  as.numeric(mat[,1]), na.rm = T)
+  d2 = mean(as.numeric(mat[,3]) -  as.numeric(mat[,2]), na.rm = T)
+  d3 = mean(as.numeric(mat[,3]) -  as.numeric(mat[,1]), na.rm = T)
+  
+  
+  return(c(pValue_BvsT1 = p1, 'mean(T1-B)' = d1, pValue_T1vsT21 = p2, 
+           'mean(T2-T1)' = d2, pValue_BvsT2 = p3,'mean(T2-B)' = d3))
+}
+
+# run tests
+#Wilcoxon test for each time point comparing responders vs non-responders. 
+# And paired Wilcoxon p-values for baseline vs post run-in and 
+# post run-in vs week 8.
+#Then take differences between all time points and 
+#compare responders vs non-responders to see 
+#if there is significant difference in changes after treatment
+runWilcox = function(k, dat, dta_pts)
+  {
+  mat <- data.frame(matrix(nrow = length(unique(dat$patientID)),
+                           ncol = 3, dimnames = list(unique(dat$patientID),
+                                                     levels(factor(dat$timePoint)))), check.names = F)
+  for(i in levels(factor(dat$timePoint)))
+  {
+    d1 = dat %>% filter(timePoint == i)
+    mat[d1$patientID, i] = d1[,k]
+  }
+  # add response
+  mat$RECIST = dta_pts[rownames(mat),"RECIST"]
+  # create treatment effect 
+  # substract baseline from post run-in and week 8 
+  mat$delta_T1_B =  mat[,2]-mat[,1]
+  mat$delta_T2_B =  mat[,3]-mat[,1]
+  # and week 8 from post run-in 
+  mat$delta_T2_T1 =  mat[,3]-mat[,2]
+  
+  # running paired test
+  # Baseline vs post run-in
+  p1 = wilcox.test(mat[,1], mat[,2], paired = T)$p.value
+  # post run-in vs week 8
+  p2 = wilcox.test(mat[,2], mat[,3], paired = T)$p.value
+  
+  # test by response
+  # for baseline 
+  p3 = wilcox.test(Baseline ~ RECIST, data = mat)$p.value
+  # for post run-in 
+  p4 = wilcox.test(mat[,2] ~ mat[,"RECIST"], data = mat)$p.value
+  # for week 8
+  p5 = wilcox.test(mat[,3] ~ mat[,"RECIST"], data = mat)$p.value
+  # compare differences in treatment effect in responders vs non-responders
+  p6 = wilcox.test(delta_T1_B ~ RECIST, data = mat)$p.value
+  p7 = wilcox.test(delta_T2_B ~ RECIST, data = mat)$p.value
+  p8 = wilcox.test(delta_T2_T1 ~ RECIST, data = mat)$p.value
+  
+  res = c(BvsT1 = p1,T1vsT2 = p2, B_RvsNR = p3, T1_RvsNR = p4, T2_RvsNR = p5, 
+           d_T1_B_RvsNR = p6, d_T2_B_RvsNR = p7, d_T2_T1_RvsNR = p8,
+          mean_d_T1_B_R = mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T1_B) %>% unlist(), na.rm = T),
+          mean_d_T1_B_NR = mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T1_B) %>% unlist(), na.rm = T),
+          mean_d_T2_B_R = mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T2_B) %>% unlist(), na.rm = T),
+          mean_d_T2_B_NR = mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T2_B) %>% unlist(), na.rm = T),
+          mean_d_T2_T1_R = mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T2_T1) %>% unlist(), na.rm = T),
+          mean_d_T2_T1_NR = mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T2_T1) %>% unlist(), na.rm = T))
+  return(round(res,3))
+}
+
 #===================================
 ##Create All Facet for plotting
 CreateAllFacet <- function(df, col){
