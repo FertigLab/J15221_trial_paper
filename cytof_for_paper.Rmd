@@ -53,8 +53,41 @@ dta_pts = dta_pts %>% filter(Best_Resp != "Unknown")
 dim(dta_pts)
 table(dta_pts$RECIST)
 
+# load cluster proportions
+dat = read.csv(paste0(rootDir,"input_tables/table_per_sample_values.csv"))
+props = grep("proportion", colnames(dat), value = T)
+
+#===========================
+# add patient info 
+dat = cbind(dat,  dta_pts[dat$patientID,])
+```
+
+# Cluster proportions
+## Table with p-values
+Pairwise Wilcoxon test was used for each time point comparing responders vs non-responders. And paired Wilcoxon test was used for baseline vs post run-in and post run-in vs week 8. We took the differences between all time points and then compare those differences between responders vs non-responders to see if there is significant difference in changes after treatment
+
+```{r fig.width = 10}
+
+prop_res = c()
+for (k in props)
+{
+  prop_res = rbind(prop_res, c(cluster = gsub("_proportion","",k), runWilcox(k, dat, dta_pts)))
+}
+
+knitr::kable(prop_res, "simple",digits = 3)
+
+write.csv(prop_res,file = "table_cytof_wilcox_props.csv", row.names = F)
+
+
+```
+
+# Marker expression by clusters
+
+
+```{r fig.width = 10}
+
 #==========================
-# file with TILs and PDL1 data
+# file with marker expression
 cytof_dat = read.csv(paste0(rootDir,"input_tables/table_cytof_marker_expression.csv"))
 
 
@@ -77,7 +110,7 @@ df_T1vT2 <- cytof_dat %>% filter(timePoint %in% c('Week 8','Post Run-in'))
 ```
 
 
-## P-values
+## Table with p-values
 
 Pairwise Wilcoxon test was used for each time point comparing responders vs non-responders. And paired Wilcoxon test was used for baseline vs post run-in and post run-in vs week 8.
 We took the differences between all time points and then compare those differences between  responders vs non-responders to see if there is significant difference in changes after treatment
@@ -106,6 +139,10 @@ datatable(res)
 
 write.csv(res,file = "table_cytof_wilcox_all_markers.csv", row.names = F)
 
+```
+## Boxplot (Responders and Non-responders)
+
+```{r  fig.width=6}
 
 # make boxplots for markers/clusters that have p-value < 0.05 in d_T1_B_RvsNR
 sets = data.frame(res)
@@ -148,7 +185,7 @@ d = CreateAllFacet(d,"RECIST")
 ```
 
 
-## Baseline vs Post Run-in 
+## Boxplot (Baseline vs Post Run-in)
 
 ```{r  fig.width = 10, fig.height=15}
 #ggpaired(df_BvT1 %>% filter(cluster %in% c("GMDSC")),
@@ -166,7 +203,7 @@ for (i in markers)
 
 ```
 
-## Post Run-in vs Week 8
+## Boxplot (Post Run-in vs Week 8)
 
 ```{r  fig.width = 10, fig.height=15}
 

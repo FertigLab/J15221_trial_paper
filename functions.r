@@ -61,6 +61,8 @@ runWilcox = function(k, dat, dta_pts)
   p1 = wilcox.test(mat[,1], mat[,2], paired = T)$p.value
   # post run-in vs week 8
   p2 = wilcox.test(mat[,2], mat[,3], paired = T)$p.value
+  # baseline vs week 8
+  p2_2 = wilcox.test(mat[,1], mat[,3], paired = T)$p.value
   
   # test by response
   # for baseline 
@@ -74,7 +76,8 @@ runWilcox = function(k, dat, dta_pts)
   p7 = wilcox.test(delta_T2_B ~ RECIST, data = mat)$p.value
   p8 = wilcox.test(delta_T2_T1 ~ RECIST, data = mat)$p.value
   
-  res = c(BvsT1 = p1,T1vsT2 = p2, B_RvsNR = p3, T1_RvsNR = p4, T2_RvsNR = p5, 
+  res = c(BvsT1 = p1,T1vsT2 = p2, BvsT2 = p2_2,
+          B_RvsNR = p3, T1_RvsNR = p4, T2_RvsNR = p5, 
            d_T1_B_RvsNR = p6, d_T2_B_RvsNR = p7, d_T2_T1_RvsNR = p8,
           mean_d_T1_B_R = mean(mat %>% filter(RECIST == "Responder") %>% select(delta_T1_B) %>% unlist(), na.rm = T),
           mean_d_T1_B_NR = mean(mat %>% filter(RECIST == "Non-responder") %>% select(delta_T1_B) %>% unlist(), na.rm = T),
