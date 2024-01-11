@@ -66,6 +66,9 @@ df_Baseline <- dat %>% filter(timePoint == 'Baseline')
 df_sampInfo <- CreateAllFacet(dat, "Subtype")
 df_sampInfo_recist <- CreateAllFacet(dat, "RECIST")
 
+# save data to submit with the paper
+write.csv(df_sampInfo_recist, file = "Source_data_figure4.csv", row.names = F)
+
 cytokines = colnames(dat)[10:18]
 units = setNames(rep(c("pg/ml", "ng/ml"), times = c(7,2)), cytokines)
 

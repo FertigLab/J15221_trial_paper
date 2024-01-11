@@ -57,6 +57,10 @@ dat = read.csv(paste0(rootDir,"input_tables/table_per_sample_values.csv"))
 # add patient info 
 dat = cbind(dat,  dta_pts[dat$patientID,])
 
+# save data to submit with the paper
+write.csv(dat, file = "Source_data_EDF4_EDF5.csv", row.names = F)
+
+
 df_Baseline <- dat %>% filter(timePoint == 'Baseline')
 
 ```

@@ -124,6 +124,9 @@ write.csv(tab1, file = "table_orr_cbr_noDose4.csv", row.names = F)
 dat <- get_tumor_best(dta_tumor) %>%
         left_join(dta_pts)
 
+# save data to submit with the paper
+write.csv(dat, file = "Source_data_figure2a.csv", row.names = F)
+
 # reproducing waterfall plot of best response
 wtr1 = ggplot(dat, aes(x = reorder(ID, -Y), y = Y, fill = Subtype)) +
   ylab ("Best Overall Response (%)") +
@@ -141,19 +144,22 @@ print(wtr1)
 #==============
 dat <- get_tumor_best(dta_tumor) %>%
         left_join(dta_pts) %>%
-        mutate(Days = Days / 30.5) %>% # convert days to months
-        arrange(Subtype, Days)
+        mutate(Months = Days / 30.5) %>% # convert days to months
+        arrange(Subtype, Months)
+# save data to submit with the paper
+write.csv(dat, file = "Source_data_figure2b.csv", row.names = F)
+
 # make ID as factor with order organized by type and days. 
 # otherwise, barplot makes it in alphabetical order
 dat$ID = factor(dat$ID, levels = dat$ID)
 
-wtr2 = ggplot(dat, aes(x = Days, y = ID, fill = Subtype)) +
+wtr2 = ggplot(dat, aes(x = Months, y = ID, fill = Subtype)) +
   ylab("Patients") +
   geom_bar(stat = "identity") +
   theme_bw()+
   labs(x = "Months")+
   scale_fill_manual(values = subtypeCol) +
-  geom_text(aes(y=ID, x = Days + 1, label = exceptional_response), size = 6)
+  geom_text(aes(y=ID, x = Months + 1, label = exceptional_response), size = 6)
 
 print(wtr2)
 
@@ -162,14 +168,17 @@ print(wtr2)
 #====================
   # keep only sample from patients with patient info
 dta_tumor <- dta_tumor %>% filter(ID %in% dta_pts$ID)
-    # add patient into to tumor data
-    dat <- dta_tumor %>%
+# add patient into to tumor data
+dat <- dta_tumor %>%
         left_join(dta_pts) %>%
         mutate(Days = Days / 30.5,
                Y    = Y *  100) %>%
         arrange(ID, Days)
-    # add stars
-    dta_star <- dat %>%
+# save data to submit with the paper
+write.csv(dat, file = "Source_data_figure2c.csv", row.names = F)
+
+# add stars
+dta_star <- dat %>%
         filter(exceptional_response == "*") %>%
         group_by(ID) %>%
         filter(Days == max(Days)) %>%
@@ -181,7 +190,8 @@ dta_tumor <- dta_tumor %>% filter(ID %in% dta_pts$ID)
         filter(Days == max(Days)) %>%
         mutate(Days = Days,
                label = "**"))
-    # make plot
+
+# make plot
 sp1 = ggplot(data = dat, aes(x = Days, y = Y)) +
         geom_line(aes(group = ID, col = Subtype), size = 1.5) +
         theme_bw() +
@@ -207,7 +217,10 @@ print(sp1)
 ## -------------------------------------------------------------
 ##            Survival
 ## -------------------------------------------------------------
-
+# save data to submit with the paper
+write.csv(dta_pts_20, file = "Source_data_figure3.csv", row.names = F)
+# save data to submit with the paper
+write.csv(dta_pts, file = "Source_data_EDF1.csv", row.names = F)
 
 pfs <- plot_surv(dta_pts_20, "PFS", "Progression Free Survival", x_6m = 12, xlim = 50, xtext = 35, add6m = T)
 

@@ -95,6 +95,10 @@ markers = colnames(cytof_dat)[4:ncol(cytof_dat)]
 #===========================
 # add patient info 
 cytof_dat = cbind(cytof_dat,  dta_pts[cytof_dat$patientID,])
+# save data to submit with the paper
+write.csv(cytof_dat, file = "Source_data_figure4_EDF2_EDF3.csv", row.names = F)
+
+
 cat("The number of patients with CYTOF data:", length(intersect(cytof_dat$patientID, dta_pts$ID)))
 # print the number of pairs between time points
 mat = printPairs(cytof_dat)
